@@ -2,24 +2,18 @@ package pages;
 
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
 
 import java.time.Duration;
 
 import static utils.UrlConstants.BASE_URL;
 import static utils.UrlConstants.PAYMENT_PAGE;
 
-public class PaymentPage extends BasePage{
-
-    @FindBy(css = "[data-qa-id='billing-you-pay']")
-    private WebElement youPayText;
+public class PaymentPage extends BasePage {
 
     @FindBy(css = "[data-qa-id='landing-pay-now']")
     private WebElement payNowButton;
-
-    @FindBy(className = "Splash_loadingWrapper__w7l9_")
-    private WebElement loadingWrapper;
     @FindBy(css = "[data-qa-id='billing-split-bill']")
     private WebElement splitBillButton;
 
@@ -61,68 +55,76 @@ public class PaymentPage extends BasePage{
         return this;
     }
 
-    public void checkout() {
-        this.payNowButton.click();
-        /*this.waitForClickable();*/
-        waitForLoadingToDisappear(splitBillButton);
-        //this.splitBillButton.click();
-        System.out.println("splitbillbutton passed");
-        this.customAmountButton.click();
+    public void checkout(String amount) {
+        clickOn(payNowButton);
+
+        clickAfterLoaded(splitBillButton);
+        clickOn(customAmountButton);
+        sendKeysTo(inputAmount, amount);
+        clickOn(confirmButton);
+
+        clickAfterLoaded(tipTenButton);
     }
 
-    public void payment(String amount, String cardNumber, int expiry, int cvv) {
-        this.inputAmount.sendKeys(amount);
-        this.confirmButton.click();
-        waitForLoadingToDisappear(tipTenButton);
-        //this.tipTenButton.click();
+    public void payment(String cardNumber, String expiry, String cvv) {
+
         switchFrame(cardNumberFrame);
-        this.cardNumberField.sendKeys(cardNumber);
-        driver.switchTo().defaultContent();
-        switchFrame(expiryDateFrame);
-        this.expiryDateField.sendKeys(String.valueOf(expiry));
-        driver.switchTo().defaultContent();
-        switchFrame(securityNumberFrame);
-        this.securityNumberField.sendKeys(String.valueOf(cvv));
-        driver.switchTo().defaultContent();
-        this.confirmPaymentButton.click();
-    }
-    private void waitForLoadingToDisappear(WebElement elementToClick) {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        System.out.println("waiting passed");
-        /*wait.until(ExpectedConditions.visibilityOfElementLocated(loadingWrapper));*/
-        System.out.println("visibility passed");
+        sendKeysTo(cardNumberField, cardNumber);
 
+        switchFrame(expiryDateFrame);
+        sendKeysTo(expiryDateField, expiry);
+
+        switchFrame(securityNumberFrame);
+        sendKeysTo(securityNumberField, cvv);
+
+        switchToMainFrame();
+        clickOn(confirmPaymentButton);
+        checkValidPayment();
+    }
+
+
+    private void clickOn(WebElement element) {
+        element.click();
+    }
+    private void sendKeysTo(WebElement inputField, String keysToSend) {
+        inputField.sendKeys(keysToSend);
+    }
+
+
+    private void clickAfterLoaded(WebElement elementToClick) {
         for (int i = 0; i < 10; i++) {
             try {
                 elementToClick.click();
-                break; // Exit the loop if click is successful
+                break;
             } catch (Exception e) {
-                // Handle other exceptions
                 System.out.println("Retrying due to: " + e.getMessage());
                 try {
-                    Thread.sleep(500); // Sleep before retrying
+                    Thread.sleep(500);
                 } catch (InterruptedException ie) {
-                    // Handle interruption during sleep
-                    Thread.currentThread().interrupt(); // Restore interrupted status
-                    System.out.println("Thread was interrupted, exiting loop");
-                    break; // Exit the loop on interruption
+                    Thread.currentThread().interrupt();
+                    System.out.println("Click attempt interrupted due to:  " + ie);
+                    break;
                 }
             }
         }
     }
-    private void waitForClickable() {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        wait.until(ExpectedConditions.visibilityOf(splitBillButton));
-    }
+
+
     private void switchFrame(WebElement iFrame) {
+        switchToMainFrame();
         driver.switchTo().frame(iFrame);
     }
+    private void switchToMainFrame() {
+        driver.switchTo().defaultContent();
     }
 
-    /*public void checkValidUserRegistration(String name, String password) {
-        // check that the current Url changed after submitting the registration form
-        Assert.assertTrue(driver.getCurrentUrl().contains(UrlConstants.SAVE_USER_PAGE));
 
-        Assert.assertTrue(mainContentContainer.getText().contains(name));
-        Assert.assertTrue(mainContentContainer.getText().contains(password));
-    }*/
+    private void checkValidPayment() {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        try {
+            wait.until(driver -> driver.getPageSource().contains("Payment was successful"));
+        } catch (Exception e) {
+            Assert.fail("Payment validation failed: " + e.getMessage());
+        }
+    }
+}

@@ -11,7 +11,7 @@ public class PaymentTest extends BaseTest{
     @Test(description = "Test payment with credit card", priority = 1)
     public void testPaymentWithCreditCard() {
         paymentPage.open();
-        paymentPage.checkout();
-        paymentPage.payment("55", "4242 4242 4242 4242", 1226, 123);
+        paymentPage.checkout("55");
+        paymentPage.payment("4242 4242 4242 4242", "1226", "123");
     }
 }
