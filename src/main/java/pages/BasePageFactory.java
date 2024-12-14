@@ -1,24 +1,20 @@
 package pages;
 
 import org.openqa.selenium.WebDriver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class is used to instantiate page classes.
  */
 public class BasePageFactory {
-    private static final Logger log = LoggerFactory.getLogger(BasePageFactory.class);
-
     public static <T extends BasePage> T createInstance(WebDriver driver, Class<T> page) {
         try {
+            // Instantiate the page class and initialize it with the driver
             BasePage instance = page.getDeclaredConstructor().newInstance();
             instance.init(driver);
 
             return page.cast(instance);
         } catch (Exception e) {
-            log.error(e.getMessage());
+            throw new RuntimeException("Page class instantiation failed for: " + page.getSimpleName(), e);
         }
-        throw new NullPointerException("Page class instantiation failed.");
     }
 }
