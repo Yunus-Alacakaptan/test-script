@@ -57,12 +57,10 @@ public class PaymentPage extends BasePage {
 
     public void checkout(String amount) {
         clickOn(payNowButton);
-
         clickAfterLoaded(splitBillButton);
         clickOn(customAmountButton);
         sendKeysTo(inputAmount, amount);
         clickOn(confirmButton);
-
         clickAfterLoaded(tipTenButton);
     }
 
@@ -91,6 +89,18 @@ public class PaymentPage extends BasePage {
     }
 
 
+    private void switchFrame(WebElement iFrame) {
+        switchToMainFrame();
+        driver.switchTo().frame(iFrame);
+    }
+    private void switchToMainFrame() {
+        driver.switchTo().defaultContent();
+    }
+
+    /**
+     * Method for bypassing temporary elements that intercept intended clicks.
+     * Nested try-catch in order to handle InterruptedException, which is a checked exception
+     */
     private void clickAfterLoaded(WebElement elementToClick) {
         for (int i = 0; i < 10; i++) {
             try {
@@ -108,17 +118,6 @@ public class PaymentPage extends BasePage {
             }
         }
     }
-
-
-    private void switchFrame(WebElement iFrame) {
-        switchToMainFrame();
-        driver.switchTo().frame(iFrame);
-    }
-    private void switchToMainFrame() {
-        driver.switchTo().defaultContent();
-    }
-
-
     private void checkValidPayment() {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
         try {

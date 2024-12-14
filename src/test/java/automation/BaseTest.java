@@ -8,27 +8,23 @@ import pages.BasePage;
 import pages.BasePageFactory;
 import pages.PaymentPage;
 
-
+/**
+ * Base class for all Test classes.
+ * Includes utility methods to create instances of POM classes.
+ */
 public abstract class BaseTest {
-
-    protected PaymentPage paymentPage;
-
     protected WebDriver driver = Driver.getDriver();
 
-    public abstract void init();
-
+    protected PaymentPage paymentPage;
     protected <T extends BasePage> T createInstance(Class<T> page) {
         return BasePageFactory.createInstance(driver, page);
     }
-
     @BeforeClass
     public void setup() {
-        init();
 
-        // instantiate POM pages
+        // Instantiate POM pages
         paymentPage = createInstance(PaymentPage.class);
     }
-
     @AfterSuite
     public void tearDown() {
         driver.quit();
